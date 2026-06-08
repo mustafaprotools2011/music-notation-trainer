@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>مرجع تدريبات النوتة الموسيقية</title>
+    <link rel="stylesheet" href="styles.css">
+  </head>
+  <body>
+    <div class="app-shell">
+
+      <!-- ── Sidebar ── -->
+      <aside class="sidebar" aria-label="أقسام البرنامج">
+        <div class="brand">
+          <div class="brand-mark">♫</div>
+          <div>
+            <h1>مرجع النوتة</h1>
+            <p>تدريب مبسط للقراءة والكتابة الموسيقية</p>
+          </div>
+        </div>
+
+        <nav class="module-list" id="moduleList"></nav>
+
+        <section class="progress-panel" aria-label="تقدم الطالب">
+          <div class="panel-title">
+            <span>تقدم اليوم</span>
+            <strong id="masteryText">0%</strong>
+          </div>
+          <div class="meter" aria-hidden="true">
+            <span id="masteryBar"></span>
+          </div>
+          <p id="progressCopy">ابدأ بأول تدريب، ثم انتقل خطوة خطوة.</p>
+        </section>
+      </aside>
+
+      <!-- ── Main workspace ── -->
+      <main class="workspace">
+
+        <header class="topbar">
+          <div>
+            <p class="eyebrow">Musical Notation &amp; Terminology</p>
+            <h2 id="moduleTitle">قراءة أسماء النغمات</h2>
+          </div>
+          <div class="toolbar" aria-label="أدوات التدريب">
+            <button class="icon-button" id="resetProgress" title="مسح التقدم" aria-label="مسح التقدم">↺</button>
+            <button class="primary-button" id="newQuestion">سؤال جديد</button>
+          </div>
+        </header>
+
+        <!-- Notation stage + concept panel -->
+        <section class="lesson-band">
+
+          <div class="notation-stage">
+            <div class="stage-header">
+              <span id="stageLabel">حدد اسم النغمة على المدرج</span>
+              <span id="difficultyLabel">مستوى تمهيدي</span>
+            </div>
+            <!-- Canvas is injected by app.js via outerHTML replacement -->
+            <svg id="notationCanvas" viewBox="0 0 640 270"
+                 role="img" aria-label="تمرين نوتة موسيقية"
+                 style="width:100%;display:block"></svg>
+          </div>
+
+          <article class="concept-panel">
+            <p class="tag" id="conceptTag">الفكرة الأساسية</p>
+            <h3 id="conceptTitle">النغمة لها مكان ثابت</h3>
+            <p id="conceptText">
+              اقرأ النغمة من مكانها على الخط أو الفراغ، ثم اربطها باسمها بالحروف.
+            </p>
+            <div class="quick-facts" id="quickFacts"></div>
+          </article>
+
+        </section>
+
+        <!-- Question + Reference -->
+        <section class="practice-area">
+
+          <div class="question-card">
+            <div class="question-head">
+              <span id="questionType">تدريب اختيار</span>
+              <span id="scoreText">0 صحيحة / 0 محاولة</span>
+            </div>
+            <h3 id="questionText">ما اسم النغمة المعروضة؟</h3>
+            <div class="answers" id="answers" role="group" aria-label="خيارات الإجابة"></div>
+            <div class="feedback" id="feedback" aria-live="polite">
+              اختر الإجابة، ثم اقرأ سبب التصحيح بصوت واضح للطالب.
+            </div>
+          </div>
+
+          <div class="reference-panel">
+            <div class="tabs" id="tabs" role="tablist" aria-label="مراجع سريعة"></div>
+            <div class="reference-content" id="referenceContent"></div>
+          </div>
+
+        </section>
+      </main>
+    </div>
+
+    <script src="app.js"></script>
+  </body>
+</html>
