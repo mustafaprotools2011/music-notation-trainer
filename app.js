@@ -487,12 +487,20 @@ function drawRhythm(symbol) {
       `<path d="M${cx+15} ${cy-62} C${cx+58} ${cy-52} ${cx+52} ${cy-24} ${cx+18} ${cy-22}"
              fill="none" stroke="#151a21" stroke-width="4" stroke-linecap="round"/>`
   };
-  const labels = { whole:'Whole note', half:'Half note', quarter:'Quarter note', eighth:'Eighth note' };
-  return `<svg id="notationCanvas" viewBox="0 0 640 270" role="img" aria-label="قيمة زمنية">
+  const labels = {
+    whole:   { en:'Whole note',   fr:'روند',  ar:'الكاملة' },
+    half:    { en:'Half note',    fr:'بلانش', ar:'البيضاء' },
+    quarter: { en:'Quarter note', fr:'نُوار', ar:'السوداء' },
+    eighth:  { en:'Eighth note',  fr:'كروش',  ar:'الكروش'  }
+  };
+  const lbl = labels[symbol];
+  return `<svg id="notationCanvas" viewBox="0 0 640 290" role="img" aria-label="قيمة زمنية">
     ${staffSVG()}
     ${trebleClef()}
     ${shapes[symbol]}
-    <text class="soft-label" x="70" y="258" direction="ltr">${labels[symbol]}</text>
+    <text x="320" y="208" text-anchor="middle" font-size="13" font-weight="700" fill="#2f6f9f" direction="ltr" font-family="serif">${lbl.en}</text>
+    <text x="320" y="228" text-anchor="middle" font-size="13" font-weight="700" fill="#126b61" direction="ltr">${lbl.fr}</text>
+    <text x="320" y="248" text-anchor="middle" font-size="13" font-weight="700" fill="#b6465f" direction="ltr">${lbl.ar}</text>
   </svg>`;
 }
 
