@@ -9,7 +9,8 @@
 // Treble clef: staff lines from bottom = E4 G4 B4 D5 F5
 // Staff line 0 (top) = F5, line 4 (bottom) = E4
 // SVG staff lines at y = 80, 104, 128, 152, 176  (gap = 24px)
-const STAFF = { top: 80, gap: 24 };   // staff top y, space between lines
+const STAFF  = { top: 80, gap: 24 };   // staff top y, space between lines
+const MID_Y  = STAFF.top + 2 * STAFF.gap; // y=128, middle line (B4) — stem direction pivot
 
 // Convert pitch step to y coordinate
 // step 0 = E4 (bottom line), step increases upward
@@ -27,22 +28,28 @@ function staffSVG(x1 = 60, x2 = 580) {
   }).join('');
 }
 
-// Helper: filled note head + stem up
+// Helper: filled note head — stem up when below middle line, down when above
 function noteHeadFilled(x, y) {
-  return `<ellipse class="note-head" cx="${x}" cy="${y}" rx="18" ry="12" transform="rotate(-18 ${x} ${y})"/>
-  <line class="stem" x1="${x + 16}" y1="${y - 3}" x2="${x + 16}" y2="${y - 70}"/>`;
+  const up = y >= MID_Y;
+  const sx = up ? x + 15 : x - 15;
+  const [sy1, sy2] = up ? [y - 2, y - 62] : [y + 2, y + 62];
+  return `<ellipse class="note-head" cx="${x}" cy="${y}" rx="16" ry="11" transform="rotate(-18 ${x} ${y})"/>
+  <line class="stem" x1="${sx}" y1="${sy1}" x2="${sx}" y2="${sy2}"/>`;
 }
 
-// Helper: open (hollow) note head + stem
+// Helper: open (hollow) note head — same stem direction logic
 function noteHeadOpen(x, y) {
-  return `<ellipse class="note-open" cx="${x}" cy="${y}" rx="18" ry="12" transform="rotate(-18 ${x} ${y})"/>
-  <line class="stem" x1="${x + 16}" y1="${y - 3}" x2="${x + 16}" y2="${y - 70}"/>`;
+  const up = y >= MID_Y;
+  const sx = up ? x + 15 : x - 15;
+  const [sy1, sy2] = up ? [y - 2, y - 62] : [y + 2, y + 62];
+  return `<ellipse class="note-open" cx="${x}" cy="${y}" rx="16" ry="11" transform="rotate(-18 ${x} ${y})"/>
+  <line class="stem" x1="${sx}" y1="${sy1}" x2="${sx}" y2="${sy2}"/>`;
 }
 
 // Helper: whole note (no stem)
 function noteWhole(x, y) {
-  return `<ellipse class="note-open" cx="${x}" cy="${y}" rx="20" ry="14" transform="rotate(-15 ${x} ${y})"/>
-  <ellipse fill="#faf9f4" cx="${x + 2}" cy="${y - 1}" rx="10" ry="8" transform="rotate(-15 ${x} ${y})"/>`;
+  return `<ellipse class="note-open" cx="${x}" cy="${y}" rx="19" ry="13" transform="rotate(-15 ${x} ${y})"/>
+  <ellipse fill="white" cx="${x + 2}" cy="${y - 1}" rx="10" ry="7" transform="rotate(-15 ${x} ${y})"/>`;
 }
 
 // Ledger lines when note is outside staff
@@ -68,13 +75,13 @@ function ledgerLines(x, y) {
 /* ─── Treble clef SVG path (accurate) ───────────────────── */
 // We use a scaled Unicode char as before but position it precisely
 function trebleClef() {
-  return `<text x="68" y="196" font-size="112" class="clef" style="font-family:serif">𝄞</text>`;
+  // Spiral wraps around line 2 from bottom (G4, y=152)
+  return `<text x="62" y="240" font-size="112" class="clef" direction="ltr" style="font-family:serif">𝄞</text>`;
 }
 
 function bassClef() {
-  return `<text x="68" y="158" font-size="76" class="clef" style="font-family:serif">𝄢</text>
-  <circle cx="142" cy="102" r="5" fill="#151a21"/>
-  <circle cx="142" cy="126" r="5" fill="#151a21"/>`;
+  // Body sits on F line (4th from bottom, y=104); dots built into the glyph
+  return `<text x="65" y="148" font-size="76" class="clef" direction="ltr" style="font-family:serif">𝄢</text>`;
 }
 
 /* ─── Module definitions ─────────────────────────────────── */
@@ -377,7 +384,7 @@ function renderModules() {
   modules.forEach(m => {
     const btn = document.createElement('button');
     btn.className = 'module-button' + (m.id === state.moduleId ? ' active' : '');
-    btn.innerHTML = `<strong>${m.title}</strong><span>${m.short}</span>`;
+    btn.textContent = m.title;
     btn.addEventListener('click', () => { state.moduleId = m.id; state.activeTab = m.refs; renderApp(); });
     moduleList.appendChild(btn);
   });
@@ -454,12 +461,11 @@ function drawNoteOnTrebleStaff(note, cx = 330) {
     ${trebleClef()}
     ${ledgerLines(cx, y)}
     ${noteHeadFilled(cx, y)}
-    <text class="soft-label" x="50" y="${svgH - 12}">Treble clef</text>
+    <text class="soft-label" x="70" y="${svgH - 12}" direction="ltr">Treble clef</text>
   </svg>`;
 }
 
 function drawNoteOnBassStaff(note, cx = 330) {
-  // Bass staff: bottom line = G2, step 0 offset same formula
   const y = pitchToY(note.step);
   const svgH = 270;
   return `<svg id="notationCanvas" viewBox="0 0 640 ${svgH}" role="img" aria-label="نغمة على مفتاح فا">
@@ -467,7 +473,7 @@ function drawNoteOnBassStaff(note, cx = 330) {
     ${bassClef()}
     ${ledgerLines(cx, y)}
     ${noteHeadFilled(cx, y)}
-    <text class="soft-label" x="50" y="${svgH - 12}">Bass clef</text>
+    <text class="soft-label" x="70" y="${svgH - 12}" direction="ltr">Bass clef</text>
   </svg>`;
 }
 
@@ -478,7 +484,7 @@ function drawRhythm(symbol) {
     half:    noteHeadOpen(cx, cy),
     quarter: noteHeadFilled(cx, cy),
     eighth:  noteHeadFilled(cx, cy) +
-      `<path d="M${cx+16} ${cy-70} C${cx+60} ${cy-60} ${cx+55} ${cy-30} ${cx+20} ${cy-28}"
+      `<path d="M${cx+15} ${cy-62} C${cx+58} ${cy-52} ${cx+52} ${cy-24} ${cx+18} ${cy-22}"
              fill="none" stroke="#151a21" stroke-width="4" stroke-linecap="round"/>`
   };
   const labels = { whole:'Whole note', half:'Half note', quarter:'Quarter note', eighth:'Eighth note' };
@@ -486,7 +492,7 @@ function drawRhythm(symbol) {
     ${staffSVG()}
     ${trebleClef()}
     ${shapes[symbol]}
-    <text class="soft-label" x="50" y="258">${labels[symbol]}</text>
+    <text class="soft-label" x="70" y="258" direction="ltr">${labels[symbol]}</text>
   </svg>`;
 }
 
@@ -498,23 +504,25 @@ function drawAccidental(symbol, caption) {
     ${trebleClef()}
     <text x="${cx - 52}" y="${cy + 16}" font-size="68" class="accidental">${symbol}</text>
     ${noteHeadFilled(cx, cy)}
-    <text class="soft-label" x="50" y="258">${caption}</text>
+    <text class="soft-label" x="70" y="258" direction="ltr">${caption}</text>
   </svg>`;
 }
 
 function drawScalePattern(pattern) {
-  // Draw 8 ascending notes (C major pattern visually)
-  const steps = [0, 1, 2, 3, 4, 5, 6, 7]; // C D E F G A B C
-  const xs = [140, 190, 240, 290, 340, 390, 440, 490];
-  const notes = steps.map((s, i) => noteHeadFilled(xs[i], pitchToY(s)));
-  // bar line at end
+  // C major scale: C4 D4 E4 F4 G4 A4 B4 C5 (steps relative to E4 bottom line)
+  const steps = [-2, -1, 0, 1, 2, 3, 4, 5]; // C4 D4 E4 F4 G4 A4 B4 C5
+  const xs = [140, 192, 244, 296, 348, 400, 452, 504];
+  const notes = steps.map((s, i) => {
+    const y = pitchToY(s);
+    return ledgerLines(xs[i], y) + noteHeadFilled(xs[i], y);
+  });
   const barY1 = STAFF.top, barY2 = STAFF.top + 4 * STAFF.gap;
   return `<svg id="notationCanvas" viewBox="0 0 640 285" role="img" aria-label="نمط السلم">
     ${staffSVG(60, 530)}
     ${trebleClef()}
     ${notes.join('')}
     <line class="bar-line" x1="520" y1="${barY1}" x2="520" y2="${barY2}"/>
-    <text x="60" y="265" font-size="15" font-weight="700" fill="#126b61">${pattern}</text>
+    <text x="70" y="265" font-size="15" font-weight="700" fill="#126b61" direction="ltr">${pattern}</text>
   </svg>`;
 }
 
@@ -536,14 +544,16 @@ function drawInterval(item) {
   return `<svg id="notationCanvas" viewBox="0 0 640 270" role="img" aria-label="مسافة موسيقية">
     ${staffSVG()}
     ${trebleClef()}
+    ${ledgerLines(cx1, y1)}
+    ${ledgerLines(cx2, y2)}
     ${noteHeadFilled(cx1, y1)}
     ${noteHeadFilled(cx2, y2)}
-    ${upperAcc ? `<text x="${cx2 - 50}" y="${y2 + 14}" font-size="44" class="accidental">${upperAcc}</text>` : ''}
+    ${upperAcc ? `<text x="${cx2 - 50}" y="${y2 + 14}" font-size="44" class="accidental" direction="ltr">${upperAcc}</text>` : ''}
     <line stroke="#126b61" stroke-width="1.5" stroke-dasharray="5,4"
           x1="${cx1 + 18}" y1="${y1 - 55}" x2="${cx2 - 6}" y2="${y2 - 55}"/>
     <text x="${(cx1 + cx2) / 2}" y="${Math.min(y1, y2) - 68}" text-anchor="middle"
-          font-size="15" font-weight="700" fill="#126b61">${item.halfSteps} half steps</text>
-    <text class="soft-label" x="50" y="258">${item.lower}  →  ${item.upper}</text>
+          font-size="15" font-weight="700" fill="#126b61" direction="ltr">${item.halfSteps} half steps</text>
+    <text class="soft-label" x="70" y="258" direction="ltr">${item.lower}  →  ${item.upper}</text>
   </svg>`;
 }
 
@@ -552,15 +562,14 @@ function drawTerm(term) {
     ${staffSVG()}
     ${trebleClef()}
     <text x="320" y="148" text-anchor="middle" font-size="52" font-weight="800"
-          font-family="serif" fill="#18202a">${term}</text>
-    <text class="soft-label" x="50" y="258">Performance term</text>
+          font-family="serif" fill="#18202a" direction="ltr">${term}</text>
+    <text class="soft-label" x="70" y="258" direction="ltr">Performance term</text>
   </svg>`;
 }
 
 /* ─── Replace canvas SVG ─────────────────────────────────── */
 function setCanvas(svgHTML) {
-  canvas.outerHTML = svgHTML;
-  // re-bind since outerHTML replaces the element
+  document.getElementById('notationCanvas').outerHTML = svgHTML;
 }
 
 /* ─── New question ───────────────────────────────────────── */
